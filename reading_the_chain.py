@@ -42,59 +42,56 @@ def connect_with_middleware(contract_json):
 
 
 def is_ordered_block(w3, block_num):
-	"""
-	Takes a block number
-	Returns a boolean that tells whether all the transactions in the block are ordered by priority fee
+    """
+    Takes a block number
+    Returns a boolean that tells whether all the transactions in the block are ordered by priority fee
 
-	Before EIP-1559, a block is ordered if and only if all transactions are sorted in decreasing order of the gasPrice field
+    Before EIP-1559, a block is ordered if and only if all transactions are sorted in decreasing order of the gasPrice field
 
-	After EIP-1559, there are two types of transactions
-		*Type 0* The priority fee is tx.gasPrice - block.baseFeePerGas
-		*Type 2* The priority fee is min( tx.maxPriorityFeePerGas, tx.maxFeePerGas - block.baseFeePerGas )
+    After EIP-1559, there are two types of transactions
+        *Type 0* The priority fee is tx.gasPrice - block.baseFeePerGas
+        *Type 2* The priority fee is min(tx.maxPriorityFeePerGas, tx.maxFeePerGas - block.baseFeePerGas)
+    """
 
-	Conveniently, most type 2 transactions set the gasPrice field to be min( tx.maxPriorityFeePerGas + block.baseFeePerGas, tx.maxFeePerGas )
-	"""
-	
-	  ordered = False
+    ordered = False
 
-	# TODO YOUR CODE HERE
+    block = w3.eth.get_block(block_num, full_transactions=True)
+    txs = block["transactions"]
 
-	  block = w3.eth.get_block(block_num, full_transactions=True)
-	    txs = block["transactions"]
-	
-	    if len(txs) <= 1:
-	        return True
-	
-	    base_fee = block.get("baseFeePerGas", None)
-	    priority_fees = []
-	
-	    for tx in txs:
-	        tx_type = tx.get("type", 0)
-	
-	        # Before London hard fork or legacy-only situation
-	        if base_fee is None:
-	            priority_fee = tx["gasPrice"]
-	
-	        else:
-	            if tx_type == 2:
-	                max_priority = tx.get("maxPriorityFeePerGas", 0)
-	                max_fee = tx.get("maxFeePerGas", 0)
-	                priority_fee = min(max_priority, max_fee - base_fee)
-	            else:
-	                gas_price = tx.get("gasPrice", 0)
-	                priority_fee = gas_price - base_fee
-	
-	        priority_fees.append(priority_fee)
-	
-	    # Check if non-increasing order
-	    for i in range(len(priority_fees) - 1):
-	        if priority_fees[i] < priority_fees[i + 1]:
-	            return False
-	
-	    return True
+    if len(txs) <= 1:
+        return True
+
+    base_fee = block.get("baseFeePerGas", None)
+    priority_fees = []
+
+    for tx in txs:
+        tx_type = tx.get("type", 0)
+
+        # Before London hard fork
+        if base_fee is None:
+            priority_fee = tx["gasPrice"]
+
+        else:
+            if tx_type == 2:
+                max_priority = tx.get("maxPriorityFeePerGas", 0)
+                max_fee = tx.get("maxFeePerGas", 0)
+                priority_fee = min(max_priority, max_fee - base_fee)
+            else:
+                gas_price = tx.get("gasPrice", 0)
+                priority_fee = gas_price - base_fee
+
+        priority_fees.append(priority_fee)
+
+    # Check if sorted in decreasing order
+    for i in range(len(priority_fees) - 1):
+        if priority_fees[i] < priority_fees[i + 1]:
+            return False
+
+    return True
 
 
-
+	
+	
 def get_contract_values(contract, admin_address, owner_address):
 	"""
 	Takes a contract object, and two addresses (as strings) to be used for calling
