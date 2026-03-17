@@ -55,43 +55,43 @@ def is_ordered_block(w3, block_num):
 	Conveniently, most type 2 transactions set the gasPrice field to be min( tx.maxPriorityFeePerGas + block.baseFeePerGas, tx.maxFeePerGas )
 	"""
 	
-	ordered = False
+	  ordered = False
 
 	# TODO YOUR CODE HERE
 
-  block = w3.eth.get_block(block_num, full_transactions=True)
-    txs = block["transactions"]
-
-    if len(txs) <= 1:
-        return True
-
-    base_fee = block.get("baseFeePerGas", None)
-    priority_fees = []
-
-    for tx in txs:
-        tx_type = tx.get("type", 0)
-
-        # Before London hard fork or legacy-only situation
-        if base_fee is None:
-            priority_fee = tx["gasPrice"]
-
-        else:
-            if tx_type == 2:
-                max_priority = tx.get("maxPriorityFeePerGas", 0)
-                max_fee = tx.get("maxFeePerGas", 0)
-                priority_fee = min(max_priority, max_fee - base_fee)
-            else:
-                gas_price = tx.get("gasPrice", 0)
-                priority_fee = gas_price - base_fee
-
-        priority_fees.append(priority_fee)
-
-    # Check if non-increasing order
-    for i in range(len(priority_fees) - 1):
-        if priority_fees[i] < priority_fees[i + 1]:
-            return False
-
-    return True
+	  block = w3.eth.get_block(block_num, full_transactions=True)
+	    txs = block["transactions"]
+	
+	    if len(txs) <= 1:
+	        return True
+	
+	    base_fee = block.get("baseFeePerGas", None)
+	    priority_fees = []
+	
+	    for tx in txs:
+	        tx_type = tx.get("type", 0)
+	
+	        # Before London hard fork or legacy-only situation
+	        if base_fee is None:
+	            priority_fee = tx["gasPrice"]
+	
+	        else:
+	            if tx_type == 2:
+	                max_priority = tx.get("maxPriorityFeePerGas", 0)
+	                max_fee = tx.get("maxFeePerGas", 0)
+	                priority_fee = min(max_priority, max_fee - base_fee)
+	            else:
+	                gas_price = tx.get("gasPrice", 0)
+	                priority_fee = gas_price - base_fee
+	
+	        priority_fees.append(priority_fee)
+	
+	    # Check if non-increasing order
+	    for i in range(len(priority_fees) - 1):
+	        if priority_fees[i] < priority_fees[i + 1]:
+	            return False
+	
+	    return True
 
 
 
