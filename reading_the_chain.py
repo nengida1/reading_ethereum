@@ -19,31 +19,26 @@ def connect_to_eth():
 
 
 def connect_with_middleware(contract_json):
+    with open(contract_json, "r") as f:
+        d = json.load(f)
+        d = d["bsc"]
+        address = d["address"]
+        abi = d["abi"]
+
+    # TODO complete this method
+    # The first section will be the same as "connect_to_eth()" but with a BNB url
+
+    # 1. Connect to BNB
+    bnb_url = "https://data-seed-prebsc-1-s1.binance.org:8545/"
+    w3 = Web3(HTTPProvider(bnb_url))
+    w3.middleware_onion.inject(ExtraDataToPOAMiddleware, layer=0)
+
+    # 2. Load contract (already loaded above, so no need to reopen file)
+    checksum_addr = Web3.to_checksum_address(address)
+    contract = w3.eth.contract(address=checksum_addr, abi=abi)
+
+    return w3, contract
 	
-	with open(contract_json, "r") as f:
-		d = json.load(f)
-		d = d['bsc']
-		address = d['address']
-		abi = d['abi']
-
-	# TODO complete this method
-	# The first section will be the same as "connect_to_eth()" but with a BNB url
-	  
-  # 1. Connect to BNB
-  w3 = Web3(HTTPProvider(bnb_url))
-  w3.middleware_onion.inject(ExtraDataToPOAMiddleware, layer=0)
-
-# 2. Load contract
-  with open(contract_json, "r") as f:
-    d = json.load(f)["bsc"]
-
-  address = d["address"]
-  abi = d["abi"]
-
-  checksum_addr = Web3.to_checksum_address(address)
-  contract = w3.eth.contract(address=checksum_addr, abi=abi)
-
-  return w3, contract
 
 
 def is_ordered_block(w3, block_num):
